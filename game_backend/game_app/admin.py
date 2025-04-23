@@ -1,15 +1,5 @@
-# from django.contrib import admin
-#
-# # Register your models here.
+from django.contrib import admin
+from .models import User,Score
 
-#
-# Conditional statement
-
-a= 44
-b =55
-
-if b > a:
-    print("B is greater than a")
-#
-# if condition:
-#     pri
+admin.site.register(User)
+admin.site.register(Score)
