@@ -18,7 +18,8 @@ class User(models.Model):
 
 class Score(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='scores',to_field='username',db_column='username', primary_key=True)
-    score = models.IntegerField()
+    high_score = models.IntegerField()
+    last_game_score = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -6,7 +6,7 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Your API Title",
+      title="Penguin Backend",
       default_version='v1',
       description="API documentation with Swagger UI",
       contact=openapi.Contact(email="your@email.com"),
