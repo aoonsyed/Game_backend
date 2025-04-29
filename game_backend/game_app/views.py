@@ -1,54 +1,57 @@
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
-from .models import User, Score
-from .serializers import UserSerializer, ScoreboardSerializer, ScoreSerializer
+from rest_framework.views import APIView
+from .models import User
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-class ScoreViewSet(viewsets.ModelViewSet):
-    queryset = Score.objects.all()
-    lookup_field = 'pk'
+class GetScoreboard(APIView):
+    def get(self, request):
+        users = User.objects.all().order_by('-high_score')
+        return Response(users.values('user_id', 'high_score'), status=status.HTTP_200_OK)
     
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return ScoreboardSerializer
-        return ScoreSerializer
-    
-    def get_queryset(self):
-        if self.request.method == 'GET':
-            return Score.objects.select_related('user').order_by('-high_score')
-        return super().get_queryset()
-    
-    def get_object(self):
-        username = self.kwargs.get('pk')
-        queryset = self.get_queryset()
-        try:
-            return queryset.get(user__username=username)
-        except Score.DoesNotExist:
-            from rest_framework.exceptions import NotFound
-            raise NotFound(detail=f"Score not found for username: {username}")
-
-    def create(self, request):
-        userID = request.data.get('user')
-        user = User.objects.filter(id=userID).first()
-        if user is None:
-            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-        username = user.username
-        last_game_score = request.data.get('last_game_score')
-
-        score_obj = Score.objects.filter(user=user).first()
-        if score_obj:
-            if last_game_score > score_obj.high_score:
-                score_obj.high_score = last_game_score
-            score_obj.last_game_score = last_game_score
-            score_obj.save()
-            return Response({"username": username, "high_score": score_obj.high_score, 'last_game_score': last_game_score},status=status.HTTP_200_OK)
-        else:
-            score_obj = Score.objects.create(user=user, high_score=last_game_score, last_game_score=last_game_score)
-            return Response(
-            {"username": username, "high_score": score_obj.high_score, 'last_game_score': last_game_score},
-            status=status.HTTP_201_CREATED
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['user_id', 'username', 'last_game_score'],
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_STRING, description='User ID'),
+                'username': openapi.Schema(type=openapi.TYPE_STRING, description='Username'),
+                'last_game_score': openapi.Schema(type=openapi.TYPE_INTEGER, description='Last game score')
+            }
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'user_id': openapi.Schema(type=openapi.TYPE_STRING),
+                    'high_score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'last_game_score': openapi.Schema(type=openapi.TYPE_INTEGER)
+                }
+            ),
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'user_id': openapi.Schema(type=openapi.TYPE_STRING),
+                    'high_score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'last_game_score': openapi.Schema(type=openapi.TYPE_INTEGER)
+                }
             )
+        }
+    )
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        username = request.data.get('username')
+        last_game_score = request.data.get('last_game_score')
+        user = User.objects.filter(user_id=user_id).first()
+        if user:
+            if last_game_score > user.high_score:
+                user.high_score = last_game_score
+            user.last_game_score = last_game_score
+            user.save()
+            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score}, status=status.HTTP_200_OK)
+        else:
+            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score)
+            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score}, status=status.HTTP_201_CREATED)
+    
