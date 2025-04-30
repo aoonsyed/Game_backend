@@ -55,3 +55,17 @@ class GetScoreboard(APIView):
             user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score)
             return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score}, status=status.HTTP_201_CREATED)
     
+
+class GetUser(APIView):
+    def get(self, request, user_id):
+        
+        user = User.objects.filter(user_id=user_id).first()
+
+        if user:
+            return Response({"user_id": user.user_id, 
+                            "username": user.username,
+                            "last_game_score": user.last_game_score,
+                            "high_score": user.high_score},
+                            status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
