@@ -50,10 +50,10 @@ class GetScoreboard(APIView):
                 user.high_score = last_game_score
             user.last_game_score = last_game_score
             user.save()
-            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score}, status=status.HTTP_200_OK)
+            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lives": user.lives}, status=status.HTTP_200_OK)
         else:
-            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score)
-            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score}, status=status.HTTP_201_CREATED)
+            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score, lives=0)
+            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lives": user.lives}, status=status.HTTP_201_CREATED)
     
 
 class GetUser(APIView):

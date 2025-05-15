@@ -6,7 +6,7 @@ class User(models.Model):
     username = models.CharField(max_length=100)
     last_game_score = models.IntegerField(null=True, blank=True)
     high_score = models.IntegerField(null=True, blank=True)
-    lives = models.IntegerField(default=5, validators=[MaxValueValidator(15)])
+    lives = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
