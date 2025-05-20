@@ -14,4 +14,10 @@ class User(models.Model):
     def __str__(self):
         return self.username
 
-    
+class Reward(models.Model):
+    wallet_id = models.CharField(unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    score = models.IntegerField()
+
+    def __str__(self):
+        return self.wallet_id

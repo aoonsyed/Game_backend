@@ -1,14 +1,14 @@
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User
+from .models import User, Reward
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 
 class GetScoreboard(APIView):
     def get(self, request):
-        users = User.objects.all().order_by('-high_score')
+        users = User.objects.order_by('-high_score')[:100]
         return Response(users.values('user_id', 'high_score'), status=status.HTTP_200_OK)
     
     @swagger_auto_schema(
@@ -143,3 +143,67 @@ class GetLives(APIView):
             return Response({"username": user.username, "lives": user.lives}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class GetReward(APIView):
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'wallet_id': openapi.Schema(type=openapi.TYPE_STRING),
+                        'score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'amount': openapi.Schema(type=openapi.TYPE_NUMBER)
+                    }
+                )
+            )
+        }
+    )
+    def get(self, request):
+        rewards = Reward.objects.all()[:100]
+        return Response(rewards.values('wallet_id', 'score', 'amount'), status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['wallet_id', 'score', 'amount'],
+            properties={
+                'wallet_id': openapi.Schema(type=openapi.TYPE_STRING, description='Wallet ID'),
+                'score': openapi.Schema(type=openapi.TYPE_INTEGER, description='User score'),
+                'amount': openapi.Schema(type=openapi.TYPE_NUMBER, description='Reward amount')
+            }
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'wallet_id': openapi.Schema(type=openapi.TYPE_STRING),
+                    'score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'amount': openapi.Schema(type=openapi.TYPE_NUMBER)
+                }
+            ),
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'wallet_id': openapi.Schema(type=openapi.TYPE_STRING),
+                    'score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'amount': openapi.Schema(type=openapi.TYPE_NUMBER)
+                }
+            )
+        }
+    )
+    def post(self, request):
+        wallet_id = request.data.get('wallet_id')
+        amount = request.data.get('amount')
+        score = request.data.get('score')
+        user = Reward.objects.filter(wallet_id=wallet_id).first()
+        if user:
+            user.score = score
+            user.amount = amount
+            user.save()
+            return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount}, status=status.HTTP_200_OK)
+        else:
+            user = Reward.objects.create(wallet_id=wallet_id, score=score, amount=amount)
+            return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount}, status=status.HTTP_201_CREATED)
