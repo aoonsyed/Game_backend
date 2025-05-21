@@ -155,7 +155,8 @@ class GetReward(APIView):
                     properties={
                         'wallet_id': openapi.Schema(type=openapi.TYPE_STRING),
                         'score': openapi.Schema(type=openapi.TYPE_INTEGER),
-                        'amount': openapi.Schema(type=openapi.TYPE_NUMBER)
+                        'amount': openapi.Schema(type=openapi.TYPE_NUMBER),
+                        'mode': openapi.Schema(type=openapi.TYPE_STRING)
                     }
                 )
             )
@@ -163,16 +164,17 @@ class GetReward(APIView):
     )
     def get(self, request):
         rewards = Reward.objects.all()[:100]
-        return Response(rewards.values('wallet_id', 'score', 'amount'), status=status.HTTP_200_OK)
+        return Response(rewards.values('wallet_id', 'score', 'amount', 'mode'), status=status.HTTP_200_OK)
     
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=['wallet_id', 'score', 'amount'],
+            required=['wallet_id', 'score', 'amount', 'mode'],
             properties={
                 'wallet_id': openapi.Schema(type=openapi.TYPE_STRING, description='Wallet ID'),
                 'score': openapi.Schema(type=openapi.TYPE_INTEGER, description='User score'),
-                'amount': openapi.Schema(type=openapi.TYPE_NUMBER, description='Reward amount')
+                'amount': openapi.Schema(type=openapi.TYPE_NUMBER, description='Reward amount'),
+                'mode': openapi.Schema(type=openapi.TYPE_STRING, description='Game mode')
             }
         ),
         responses={
@@ -181,7 +183,8 @@ class GetReward(APIView):
                 properties={
                     'wallet_id': openapi.Schema(type=openapi.TYPE_STRING),
                     'score': openapi.Schema(type=openapi.TYPE_INTEGER),
-                    'amount': openapi.Schema(type=openapi.TYPE_NUMBER)
+                    'amount': openapi.Schema(type=openapi.TYPE_NUMBER),
+                    'mode': openapi.Schema(type=openapi.TYPE_STRING)
                 }
             ),
             status.HTTP_201_CREATED: openapi.Schema(
@@ -189,7 +192,8 @@ class GetReward(APIView):
                 properties={
                     'wallet_id': openapi.Schema(type=openapi.TYPE_STRING),
                     'score': openapi.Schema(type=openapi.TYPE_INTEGER),
-                    'amount': openapi.Schema(type=openapi.TYPE_NUMBER)
+                    'amount': openapi.Schema(type=openapi.TYPE_NUMBER),
+                    'mode': openapi.Schema(type=openapi.TYPE_STRING)
                 }
             )
         }
@@ -198,12 +202,14 @@ class GetReward(APIView):
         wallet_id = request.data.get('wallet_id')
         amount = request.data.get('amount')
         score = request.data.get('score')
+        mode = request.data.get('mode')
         user = Reward.objects.filter(wallet_id=wallet_id).first()
         if user:
             user.score = score
             user.amount = amount
+            user.mode = mode
             user.save()
-            return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount}, status=status.HTTP_200_OK)
+            return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount, "mode": user.mode}, status=status.HTTP_200_OK)
         else:
-            user = Reward.objects.create(wallet_id=wallet_id, score=score, amount=amount)
-            return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount}, status=status.HTTP_201_CREATED)
+            user = Reward.objects.create(wallet_id=wallet_id, score=score, amount=amount, mode=mode)
+            return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount, "mode": user.mode}, status=status.HTTP_201_CREATED)

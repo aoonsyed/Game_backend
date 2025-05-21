@@ -75,6 +75,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'game_backend.wsgi.application'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 
 # Database
