@@ -57,8 +57,37 @@ class GetScoreboard(APIView):
     
 
 class GetUser(APIView):
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                name='user_id',
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_STRING,
+                description='User ID',
+                required=True
+            )
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'user_id': openapi.Schema(type=openapi.TYPE_STRING),
+                    'username': openapi.Schema(type=openapi.TYPE_STRING),
+                    'last_game_score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'high_score': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'investment': openapi.Schema(type=openapi.TYPE_NUMBER)
+                }
+            ),
+            status.HTTP_404_NOT_FOUND: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        }
+    )
     def get(self, request, user_id):
-        
         user = User.objects.filter(user_id=user_id).first()
 
         if user:
@@ -66,7 +95,8 @@ class GetUser(APIView):
                             "username": user.username,
                             "last_game_score": user.last_game_score,
                             "high_score": user.high_score,
-                            "lives": user.lives,},
+                            "lives": user.lives,
+                            "investment": user.investment,},
                             status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -87,7 +117,8 @@ class GetLives(APIView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
-                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER)
+                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'investment': openapi.Schema(type=openapi.TYPE_NUMBER)
                 }
             ),
             status.HTTP_404_NOT_FOUND: openapi.Schema(
@@ -102,7 +133,7 @@ class GetLives(APIView):
         user_id = request.query_params.get('user_id')
         user = User.objects.filter(user_id=user_id).first()
         if user:
-            return Response({"username": user.username,"lives": user.lives}, status=status.HTTP_200_OK)
+            return Response({"username": user.username,"lives": user.lives, "investment": user.investment}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -112,7 +143,8 @@ class GetLives(APIView):
             required=['user_id', 'lives'],
             properties={
                 'user_id': openapi.Schema(type=openapi.TYPE_STRING, description='User ID'),
-                'lives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of lives')
+                'lives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of lives'),
+                'investment': openapi.Schema(type=openapi.TYPE_NUMBER, description='Investment amount')
             }
         ),
         responses={
@@ -120,7 +152,14 @@ class GetLives(APIView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
-                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER)
+                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'investment': openapi.Schema(type=openapi.TYPE_NUMBER)
+                }
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
                 }
             ),
             status.HTTP_404_NOT_FOUND: openapi.Schema(
@@ -134,13 +173,15 @@ class GetLives(APIView):
     def post(self, request):
         user_id = request.data.get('user_id')
         lives = request.data.get('lives')
+        investment = request.data.get('investment')
         if lives < 0 or lives > 15:
             return Response({"error": "Lives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
         user = User.objects.filter(user_id=user_id).first()
         if user:
             user.lives = lives
+            user.investment = investment
             user.save()
-            return Response({"username": user.username, "lives": user.lives}, status=status.HTTP_200_OK)
+            return Response({"username": user.username, "lives": user.lives, "investment": user.investment}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         
