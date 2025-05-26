@@ -6,6 +6,8 @@ class User(models.Model):
     last_game_score = models.IntegerField(null=True, blank=True)
     high_score = models.IntegerField(null=True, blank=True)
     lives = models.IntegerField()
+    pathToGloryLives = models.IntegerField()
+    arcticFortuneLives = models.IntegerField()
     investment = models.FloatField(default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

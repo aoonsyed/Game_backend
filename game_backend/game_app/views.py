@@ -50,10 +50,10 @@ class GetScoreboard(APIView):
                 user.high_score = last_game_score
             user.last_game_score = last_game_score
             user.save()
-            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lives": user.lives}, status=status.HTTP_200_OK)
+            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lipathToGloryLivesves": user.pathToGloryLives, "arcticFortuneLives": user.arcticFortuneLives}, status=status.HTTP_200_OK)
         else:
-            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score, lives=0)
-            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lives": user.lives}, status=status.HTTP_201_CREATED)
+            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score, pathToGloryLives=0,arcticFortuneLives=0)
+            return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lipathToGloryLivesves": user.pathToGloryLives, "arcticFortuneLives": user.arcticFortuneLives}, status=status.HTTP_201_CREATED)
     
 
 class GetUser(APIView):
@@ -75,7 +75,8 @@ class GetUser(APIView):
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
                     'last_game_score': openapi.Schema(type=openapi.TYPE_INTEGER),
                     'high_score': openapi.Schema(type=openapi.TYPE_INTEGER),
-                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'pathToGloryLives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'arcticFortuneLives': openapi.Schema(type=openapi.TYPE_INTEGER),
                     'investment': openapi.Schema(type=openapi.TYPE_NUMBER)
                 }
             ),
@@ -95,7 +96,8 @@ class GetUser(APIView):
                             "username": user.username,
                             "last_game_score": user.last_game_score,
                             "high_score": user.high_score,
-                            "lives": user.lives,
+                            "arcticFortuneLives": user.arcticFortuneLives,
+                            "pathToGloryLives": user.pathToGloryLives,
                             "investment": user.investment,},
                             status=status.HTTP_200_OK)
         else:
@@ -117,7 +119,8 @@ class GetLives(APIView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
-                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'pathToGloryLives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'arcticFortuneLives': openapi.Schema(type=openapi.TYPE_INTEGER),
                     'investment': openapi.Schema(type=openapi.TYPE_NUMBER)
                 }
             ),
@@ -133,7 +136,7 @@ class GetLives(APIView):
         user_id = request.query_params.get('user_id')
         user = User.objects.filter(user_id=user_id).first()
         if user:
-            return Response({"username": user.username,"lives": user.lives, "investment": user.investment}, status=status.HTTP_200_OK)
+            return Response({"username": user.username,"pathToGloryLives": user.pathToGloryLives, "arcticFortuneLives": user.arcticFortuneLives , "investment": user.investment}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -143,7 +146,8 @@ class GetLives(APIView):
             required=['user_id', 'lives'],
             properties={
                 'user_id': openapi.Schema(type=openapi.TYPE_STRING, description='User ID'),
-                'lives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of lives'),
+                'pathToGloryLives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of Path to Glory lives'),
+                'arcticFortuneLives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of Arctic Fortune lives'),
                 'investment': openapi.Schema(type=openapi.TYPE_NUMBER, description='Investment amount')
             }
         ),
@@ -152,7 +156,8 @@ class GetLives(APIView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
-                    'lives': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'pathToGloryLives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of Path to Glory lives'),
+                    'arcticFortuneLives': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of Arctic Fortune lives'),
                     'investment': openapi.Schema(type=openapi.TYPE_NUMBER)
                 }
             ),
@@ -172,16 +177,24 @@ class GetLives(APIView):
     )
     def post(self, request):
         user_id = request.data.get('user_id')
-        lives = request.data.get('lives')
+        arcticFortuneLives = request.data.get('arcticFortuneLives')
+        pathToGloryLives = request.data.get('pathToGloryLives')
         investment = request.data.get('investment')
-        if lives < 0 or lives > 15:
-            return Response({"error": "Lives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
         user = User.objects.filter(user_id=user_id).first()
         if user:
-            user.lives = lives
+            if arcticFortuneLives is not None:
+                if arcticFortuneLives < 0 or arcticFortuneLives > 15:
+                    return Response({"error": "arcticFortuneLives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    user.arcticFortuneLives = arcticFortuneLives
+            if pathToGloryLives is not None:
+                if pathToGloryLives < 0 or pathToGloryLives > 15:
+                    return Response({"error": "pathToGloryLives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    user.pathToGloryLives = pathToGloryLives
             user.investment = investment
             user.save()
-            return Response({"username": user.username, "lives": user.lives, "investment": user.investment}, status=status.HTTP_200_OK)
+            return Response({"username": user.username, "arcticFortuneLives": user.arcticFortuneLives, "pathToGloryLives": user.pathToGloryLives, "investment": user.investment}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         
