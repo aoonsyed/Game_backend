@@ -52,7 +52,7 @@ class GetScoreboard(APIView):
             user.save()
             return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lipathToGloryLivesves": user.pathToGloryLives, "arcticFortuneLives": user.arcticFortuneLives}, status=status.HTTP_200_OK)
         else:
-            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score, pathToGloryLives=0,arcticFortuneLives=0)
+            user = User.objects.create(user_id=user_id, username=username, last_game_score=last_game_score, high_score=last_game_score, pathToGloryLives=0,arcticFortuneLives=0, lives=0)
             return Response({"user_id": user.user_id, "last_game_score": user.last_game_score,"high_score": user.high_score, "lipathToGloryLivesves": user.pathToGloryLives, "arcticFortuneLives": user.arcticFortuneLives}, status=status.HTTP_201_CREATED)
     
 
