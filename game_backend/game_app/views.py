@@ -183,15 +183,15 @@ class GetLives(APIView):
         user = User.objects.filter(user_id=user_id).first()
         if user:
             if arcticFortuneLives is not None:
-                if arcticFortuneLives < 0 or arcticFortuneLives > 15:
-                    return Response({"error": "arcticFortuneLives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    user.arcticFortuneLives = arcticFortuneLives
+                # if arcticFortuneLives < 0 or arcticFortuneLives > 15:
+                #     return Response({"error": "arcticFortuneLives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
+                # else:
+                user.arcticFortuneLives = arcticFortuneLives
             if pathToGloryLives is not None:
-                if pathToGloryLives < 0 or pathToGloryLives > 15:
-                    return Response({"error": "pathToGloryLives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    user.pathToGloryLives = pathToGloryLives
+                # if pathToGloryLives < 0 or pathToGloryLives > 15:
+                #     return Response({"error": "pathToGloryLives must be between 0 and 15"}, status=status.HTTP_400_BAD_REQUEST)
+                # else:
+                user.pathToGloryLives = pathToGloryLives
             user.investment = investment
             user.save()
             return Response({"username": user.username, "arcticFortuneLives": user.arcticFortuneLives, "pathToGloryLives": user.pathToGloryLives, "investment": user.investment}, status=status.HTTP_200_OK)
