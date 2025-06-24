@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "game_app",
     "rest_framework",
     "drf_yasg",
+    'django_celery_beat',
     'corsheaders',
 ]
 
@@ -89,6 +90,10 @@ DATABASES = {
     }
 }
 
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

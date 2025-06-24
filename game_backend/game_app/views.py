@@ -1,11 +1,13 @@
+from datetime import timedelta
+from django.utils import timezone
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User, Reward
+from .models import User, Reward, LeaderboardHistory
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
-
+from .tasks import reset_leaderboard
+from .serializers import LeaderboardHistorySerializer
 class GetScoreboard(APIView):
     def get(self, request):
         users = User.objects.order_by('-high_score')[:100]
@@ -267,3 +269,23 @@ class GetReward(APIView):
         else:
             user = Reward.objects.create(wallet_id=wallet_id, score=score, amount=amount, mode=mode)
             return Response({"wallet_id": user.wallet_id, "score": user.score,"amount": user.amount, "mode": user.mode}, status=status.HTTP_201_CREATED)
+
+
+class TriggerLeaderboardReset(APIView):
+    @swagger_auto_schema(
+        operation_description="Manually trigger the leaderboard reset task (useful for testing Celery).",
+        responses={200: openapi.Response("Task triggered successfully")},
+    )
+    def post(self, request):
+        reset_leaderboard.delay()
+        return Response({"message": "Leaderboard reset task triggered"}, status=status.HTTP_200_OK)
+
+
+class LeaderboardHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to fetch leaderboard backups from the last 7 days.
+    """
+    serializer_class = LeaderboardHistorySerializer
+    def get_queryset(self):
+        one_week_ago = timezone.now() - timedelta(days=7)
+        return LeaderboardHistory.objects.filter(backup_time__gte=one_week_ago).order_by('-backup_time')
