@@ -1,16 +1,16 @@
 from celery import shared_task
 from .models import User, LeaderboardHistory
-from celery.utils.log import get_task_logger
-
-logger = get_task_logger(__name__)
 
 @shared_task
 def reset_leaderboard():
     try:
-        users = User.objects.all().iterator()
+        print("✅ Celery task 'reset_leaderboard' is running...")
 
+        users = User.objects.all().iterator()
         history_records = []
+
         for user in users:
+            print(f"Backing up scores for user: {user.username}")
             history_records.append(LeaderboardHistory(
                 user_id=user.user_id,
                 username=user.username,
@@ -19,11 +19,13 @@ def reset_leaderboard():
             ))
 
         LeaderboardHistory.objects.bulk_create(history_records)
-        User.objects.update(high_score=0, last_game_score=0)
+        print("✅ Leaderboard history backed up.")
 
-        logger.info("✅ Leaderboard reset completed and history backed up.")
+        User.objects.update(high_score=0, last_game_score=0)
+        print("✅ Leaderboard scores reset to 0.")
+
         return "Leaderboard scores backed up and reset successfully"
 
     except Exception as e:
-        logger.error(f"❌ Leaderboard reset failed: {e}")
+        print(f"❌ Leaderboard reset failed: {e}")
         raise
